@@ -1,7 +1,8 @@
 package com.epam.workload.domain.port.out.persistence;
 
-import com.epam.workload.domain.model.entity.TrainerWorkload;
-
 public interface SaveWorkloadPort {
-    TrainerWorkload save(TrainerWorkload aggregate);
+    void upsertMonth(String username, int year, int month,
+                     String firstName, String lastName, boolean active,
+                     int totalMinutes);
+    void deleteMonth(String username, int year, int month);
 }

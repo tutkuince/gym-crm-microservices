@@ -19,22 +19,32 @@ public class RecordTrainingCommandHandler implements RecordTrainingCommandPort {
     private final LoadWorkloadPort loadPort;
     private final SaveWorkloadPort savePort;
 
-    @Transactional
     @Override
-    public void handle(RecordTrainingCommand command) {
-        TrainerId trainerId = new TrainerId(command.trainerUsername());
+    @Transactional
+    public void handle(RecordTrainingCommand c) {
+        var id = new TrainerId(c.trainerUsername());
+        var ym = YearMonth.from(c.trainingDate());
+        var month = new TrainingMonth(ym);
 
-        TrainerWorkload aggregate = loadPort.loadByUsername(trainerId.value())
-                .orElseGet(() -> new TrainerWorkload(trainerId, command.trainerFirstName(), command.trainerLastName(), command.isActive()));
+        int currentTotal = loadPort.loadMonthlyMinutes(id.value(), ym.getYear(), ym.getMonthValue())
+                .orElse(0);
 
-        YearMonth yearMonth = YearMonth.from(command.trainingDate());
-        TrainingMonth trainingMonth = new TrainingMonth(yearMonth);
-
-        switch (command.actionType()) {
-            case ADD -> aggregate.record(trainingMonth, command.trainingDurationMinutes());
-            case DELETE -> aggregate.delete(trainingMonth, command.trainingDurationMinutes());
+        var agg = new TrainerWorkload(id, c.trainerFirstName(), c.trainerLastName(), c.isActive());
+        if (currentTotal > 0) {
+            agg.record(month, currentTotal);
         }
 
-        savePort.save(aggregate);
+        switch (c.actionType()) {
+            case ADD    -> agg.record(month, c.trainingDurationMinutes());
+            case DELETE -> agg.delete(month, c.trainingDurationMinutes());
+        }
+
+        var newTotal = agg.getMinutesByMonth().getOrDefault(ym, 0);
+        if (newTotal <= 0) {
+            savePort.deleteMonth(id.value(), ym.getYear(), ym.getMonthValue());
+        } else {
+            savePort.upsertMonth(id.value(), ym.getYear(), ym.getMonthValue(),
+                    c.trainerFirstName(), c.trainerLastName(), c.isActive(), newTotal);
+        }
     }
 }
