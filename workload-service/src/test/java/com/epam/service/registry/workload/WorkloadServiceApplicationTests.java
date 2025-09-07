@@ -1,4 +1,4 @@
-package com.epam.service.registry.workloadservice;
+package com.epam.service.registry.workload;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
