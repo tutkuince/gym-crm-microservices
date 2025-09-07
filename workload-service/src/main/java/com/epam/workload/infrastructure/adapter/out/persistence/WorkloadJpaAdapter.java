@@ -29,7 +29,7 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
                 first.getFirstName(), first.getLastName(), first.isActive());
 
         rows.forEach(r -> {
-            var ym = YearMonth.of(r.getYear(), r.getMonth());
+            var ym = YearMonth.of(r.getWorkYear(), r.getWorkMonth());
             agg.record(new TrainingMonth(ym), r.getTotalMinutes());
         });
         return Optional.of(agg);
@@ -38,7 +38,7 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<Integer> loadMonthlyMinutes(String username, int year, int month) {
-        return workloadRepository.findByUsernameAndYearAndMonth(username, year, month)
+        return workloadRepository.findByUsernameAndWorkYearAndWorkMonth(username, year, month)
                 .map(TrainerMonthlyWorkloadEntity::getTotalMinutes);
     }
 
@@ -48,7 +48,7 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
                             String firstName, String lastName, boolean active,
                             int totalMinutes) {
 
-        var existing = workloadRepository.findByUsernameAndYearAndMonth(username, year, month);
+        var existing = workloadRepository.findByUsernameAndWorkYearAndWorkMonth(username, year, month);
         if (existing.isPresent()) {
             var e = existing.get();
             e.setFirstName(firstName);
@@ -63,6 +63,6 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
 
     @Transactional
     public void deleteMonth(String username, int year, int month) {
-        workloadRepository.deleteByUsernameAndYearAndMonth(username, year, month);
+        workloadRepository.deleteByUsernameAndWorkYearAndWorkMonth(username, year, month);
     }
 }

@@ -3,7 +3,6 @@ package com.epam.workload.infrastructure.adapter.out.persistence;
 import jakarta.persistence.*;
 import lombok.*;
 
-@NoArgsConstructor
 @Setter
 @Getter
 @Entity
@@ -13,10 +12,13 @@ import lombok.*;
 ))
 public class TrainerMonthlyWorkloadEntity {
 
-    public TrainerMonthlyWorkloadEntity(String username, int year, int month, String firstName, String lastName, boolean active, int totalMinutes) {
+    public TrainerMonthlyWorkloadEntity() {
+    }
+
+    public TrainerMonthlyWorkloadEntity(String username, int workYear, int workMonth, String firstName, String lastName, boolean active, int totalMinutes) {
         this.username = username;
-        this.year = year;
-        this.month = month;
+        this.workYear = workYear;
+        this.workMonth = workMonth;
         this.firstName = firstName;
         this.lastName = lastName;
         this.active = active;
@@ -29,10 +31,10 @@ public class TrainerMonthlyWorkloadEntity {
 
     @Column(nullable = false)
     private String username;
-    @Column(nullable = false)
-    private int year;
-    @Column(nullable = false)
-    private int month;
+    @Column(name = "work_year", nullable = false)
+    private int workYear;
+    @Column(name = "work_month", nullable = false)
+    private int workMonth;
 
     @Column(nullable = false)
     private String firstName;

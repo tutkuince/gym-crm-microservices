@@ -9,8 +9,7 @@ public interface WorkloadRepository extends JpaRepository<TrainerMonthlyWorkload
 
     List<TrainerMonthlyWorkloadEntity> findAllByUsername(String username);
 
-    Optional<TrainerMonthlyWorkloadEntity> findByUsernameAndYearAndMonth(
-            String username, int year, int month);
+    Optional<TrainerMonthlyWorkloadEntity> findByUsernameAndWorkYearAndWorkMonth(String username, int workYear, int workMonth);
 
-    void deleteByUsernameAndYearAndMonth(String username, int year, int month);
+    void deleteByUsernameAndWorkYearAndWorkMonth(String username, int workYear, int workMonth);
 }
