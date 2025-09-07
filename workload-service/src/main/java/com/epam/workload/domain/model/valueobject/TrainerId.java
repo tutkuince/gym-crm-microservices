@@ -1,4 +1,4 @@
-package com.epam.service.registry.workload.domain.model.valueobject;
+package com.epam.workload.domain.model.valueobject;
 
 import java.util.Locale;
 import java.util.Objects;

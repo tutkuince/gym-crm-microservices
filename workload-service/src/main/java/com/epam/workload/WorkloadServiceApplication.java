@@ -1,4 +1,4 @@
-package com.epam.service.registry.workload;
+package com.epam.workload;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

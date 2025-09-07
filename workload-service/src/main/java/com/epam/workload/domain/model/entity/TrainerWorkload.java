@@ -1,7 +1,7 @@
-package com.epam.service.registry.workload.domain.model.entity;
+package com.epam.workload.domain.model.entity;
 
-import com.epam.service.registry.workload.domain.model.valueobject.TrainerId;
-import com.epam.service.registry.workload.domain.model.valueobject.TrainingMonth;
+import com.epam.workload.domain.model.valueobject.TrainerId;
+import com.epam.workload.domain.model.valueobject.TrainingMonth;
 import lombok.Getter;
 
 import java.time.YearMonth;
