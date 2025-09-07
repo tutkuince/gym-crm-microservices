@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RequiredArgsConstructor
 @Service
@@ -20,7 +21,7 @@ public class GetWorkloadQueryHandler implements GetWorkloadQueryPort {
 
     @Override
     public TrainerWorkloadResponseDto getByUsername(String username) {
-        TrainerWorkload trainerWorkload = loadPort.loadByUsername(username).orElseThrow(() -> new IllegalArgumentException("trainer not found: " + username));
+        TrainerWorkload trainerWorkload = loadPort.loadByUsername(username).orElseThrow(() -> new NoSuchElementException("trainer not found: " + username));
         List<MonthlySummaryDto> months = new ArrayList<>();
         trainerWorkload.getMinutesByMonth().forEach(((yearMonth, total) -> months.add(new MonthlySummaryDto(yearMonth.getYear(), yearMonth.getMonthValue(), total))));
 
