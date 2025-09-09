@@ -6,10 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/api/v1/workloads", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -20,6 +17,12 @@ public class WorkloadCommandController {
 
     @PostMapping
     public ResponseEntity<Void> record(@Valid @RequestBody RecordTrainingCommand command) {
+        commandPort.handle(command);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> cancel(@Valid @RequestBody RecordTrainingCommand command) {
         commandPort.handle(command);
         return ResponseEntity.ok().build();
     }
