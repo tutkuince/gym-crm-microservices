@@ -6,12 +6,14 @@ import com.epam.workload.domain.model.valueobject.TrainingMonth;
 import com.epam.workload.domain.port.out.persistence.LoadWorkloadPort;
 import com.epam.workload.domain.port.out.persistence.SaveWorkloadPort;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
@@ -21,8 +23,13 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<TrainerWorkload> loadByUsername(String username) {
+        log.info("Loading workload aggregate for trainerUsername={}", username);
+
         var rows = workloadRepository.findAllByUsername(username);
-        if (rows.isEmpty()) return Optional.empty();
+        if (rows.isEmpty()) {
+            log.warn("No workload records found for trainer={}", username);
+            return Optional.empty();
+        }
 
         var first = rows.getFirst();
         var agg = new TrainerWorkload(new TrainerId(username),
@@ -31,15 +38,31 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
         rows.forEach(r -> {
             var ym = YearMonth.of(r.getWorkYear(), r.getWorkMonth());
             agg.record(new TrainingMonth(ym), r.getTotalMinutes());
+            log.debug("Loaded row for trainer={}, year={}, month={}, minutes={}",
+                    username, r.getWorkYear(), r.getWorkMonth(), r.getTotalMinutes());
         });
+
+        log.info("Finished loading workload aggregate for trainer={}, totalMonths={}", username, rows.size());
         return Optional.of(agg);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Integer> loadMonthlyMinutes(String username, int year, int month) {
-        return workloadRepository.findByUsernameAndWorkYearAndWorkMonth(username, year, month)
-                .map(TrainerMonthlyWorkloadEntity::getTotalMinutes);
+        log.info("Loading monthly workload for trainer={}, year={}, month={}", username, year, month);
+
+        var result = workloadRepository.findByUsernameAndWorkYearAndWorkMonth(username, year, month)
+                .map(entity -> {
+                    log.debug("Found monthly workload entity: trainer={}, year={}, month={}, minutes={}",
+                            username, year, month, entity.getTotalMinutes());
+                    return entity.getTotalMinutes();
+                });
+
+        if (result.isEmpty()) {
+            log.warn("No monthly workload found for trainer={}, year={}, month={}", username, year, month);
+        }
+
+        return result;
     }
 
     @Override
@@ -48,6 +71,9 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
                             String firstName, String lastName, boolean active,
                             int totalMinutes) {
 
+        log.info("Upserting workload record: trainer={}, year={}, month={}, minutes={}",
+                username, year, month, totalMinutes);
+
         var existing = workloadRepository.findByUsernameAndWorkYearAndWorkMonth(username, year, month);
         if (existing.isPresent()) {
             var e = existing.get();
@@ -55,14 +81,17 @@ public class WorkloadJpaAdapter implements LoadWorkloadPort, SaveWorkloadPort {
             e.setLastName(lastName);
             e.setActive(active);
             e.setTotalMinutes(totalMinutes);
+            log.debug("Updated existing workload entity for trainer={}, year={}, month={}", username, year, month);
         } else {
             var e = new TrainerMonthlyWorkloadEntity(username, year, month, firstName, lastName, active, totalMinutes);
             workloadRepository.save(e);
+            log.debug("Inserted new workload entity for trainer={}, year={}, month={}", username, year, month);
         }
     }
 
     @Transactional
     public void deleteMonth(String username, int year, int month) {
+        log.info("Deleting workload record for trainer={}, year={}, month={}", username, year, month);
         workloadRepository.deleteByUsernameAndWorkYearAndWorkMonth(username, year, month);
     }
 }
