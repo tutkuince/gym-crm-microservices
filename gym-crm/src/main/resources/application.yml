@@ -74,14 +74,41 @@ feign:
 
 resilience4j:
   circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: TIME_BASED
+        slidingWindowSize: 60 # saniye
+        minimumNumberOfCalls: 20
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 10s
+        recordExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.HttpServerErrorException
+        ignoreExceptions:
+          - com.epam.gymcrm.domain.exception.NotFoundException
     instances:
       workload:
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
+        baseConfig: default
+
   retry:
     instances:
       workload:
         maxAttempts: 3
         waitDuration: 200ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 1.5
+        exponential-max-wait-duration:
+          seconds:  2s
+        failAfterMaxAttempts: true
+        retryExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.client.HttpServerErrorException
+        ignoreExceptions:
+          - com.epam.gymcrm.domain.exception.NotFoundException
