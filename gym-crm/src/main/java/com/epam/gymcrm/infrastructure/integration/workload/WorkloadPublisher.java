@@ -33,11 +33,13 @@ public class WorkloadPublisher {
     @Retry(name = "workload")
     public void trainingCancelled(String username, String firstName, String lastName,
                                   boolean active, LocalDate date, int minutes) {
-        client.cancel(new RecordTrainingCommand(
+        client.record(new RecordTrainingCommand(
                 username, firstName, lastName, active, date, minutes, RecordTrainingCommand.ActionType.DELETE));
     }
 
-    private void fallback(Throwable t) {
-        logger.warn("workload-service call failed: {}", t.toString());
+    public void fallback(String username, String firstName, String lastName,
+                         boolean active, LocalDate date, int minutes, Throwable t) {
+        logger.warn("workload-service call failed for {} at {}, reason={}",
+                username, date, t.getMessage());
     }
 }
